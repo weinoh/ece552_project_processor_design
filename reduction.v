@@ -1,0 +1,27 @@
+// THIS IS WRONG !!! ( I THINK ) 
+module reduction(A, B, red_output);
+	input [15:0] A; //Content in rs
+	input [15:0] B; //Content in rt
+	wire Cout1, Cout2, Cout3, Cout4, Cout5, Cout6, Cout7; //Carry out for each part
+	wire [3:0] Sum1, Sum2, Sum3, Sum4, Sum5, Sum6, Sum7; //Sum for each part
+	wire PG1, PG2, PG3, PG4, PG5, PG6, PG7;
+	wire GG1, GG2, GG3, GG4, GG5, GG6, GG7;
+	wire FA1Sum, FA1Carry, FA2Carry, FA2Sum, FA3Carry, FA3Sum, FA4Carry, FA4Sum;
+	wire carry1, carry2, carry3; //Used to represent bit [6:4]
+	output [6:0] red_output; //Reduction result
+
+	cla_4bit CLA1(.Sum(Sum1), .Co(Cout1), .saturate(1'b0), .PG(PG1), .GG(GG1), .A(A[15:12]), .B(B[15:12]), .Ci(1'b0));
+	cla_4bit CLA2(.Sum(Sum2), .Co(Cout2), .saturate(1'b0), .PG(PG2), .GG(GG2), .A(A[11:8]), .B(B[11:8]), .Ci(1'b0));
+	cla_4bit CLA3(.Sum(Sum3), .Co(Cout3), .saturate(1'b0), .PG(PG3), .GG(GG3), .A(A[7:4]), .B(B[7:4]), .Ci(1'b0));
+	cla_4bit CLA4(.Sum(Sum4), .Co(Cout4), .saturate(1'b0), .PG(PG4), .GG(GG4), .A(A[3:0]), .B(B[3:0]), .Ci(1'b0));
+	cla_4bit CLA5(.Sum(Sum5), .Co(Cout5), .saturate(1'b0), .PG(PG5), .GG(GG5), .A(Sum1), .B(Sum2), .Ci(1'b0));
+	cla_4bit CLA6(.Sum(Sum6), .Co(Cout6), .saturate(1'b0), .PG(PG6), .GG(GG6), .A(Sum3), .B(Sum4), .Ci(1'b0));
+	cla_4bit CLA7(.Sum(Sum7), .Co(Cout7), .saturate(1'b0), .PG(PG7), .GG(GG7), .A(Sum5), .B(Sum6), .Ci(1'b0));
+	
+	adder_1bit FA1(.A(Cout1), .B(Cout2), .Ci(Cout5), .Sum(FA1Sum), .Co(FA1Carry));
+	adder_1bit FA2(.A(Cout3), .B(Cout4), .Ci(Cout6), .Sum(FA2Sum), .Co(FA2Carry));
+	adder_1bit FA3(.A(FA1Sum), .B(FA2Sum), .Ci(Cout7), .Sum(FA3Sum), .Co(FA3Carry));
+	adder_1bit FA4(.A(FA2Carry), .B(FA3Carry), .Ci(FA1Carry), .Sum(FA4Sum), .Co(FA4Carry));
+	
+	assign red_output = {FA4Carry, FA4Sum, FA3Sum, Sum7};
+endmodule

@@ -1,0 +1,79 @@
+I:/ece552/cla_16bit_tb.v {1 {vlog -work work -vopt -stats=none I:/ece552/cla_16bit_tb.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module cla_16bit_tb
+
+Top level modules:
+	cla_16bit_tb
+
+} {} {}} I:/ece552/cla_16bit.v {1 {vlog -work work -vopt -stats=none I:/ece552/cla_16bit.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module cla_16bit
+
+Top level modules:
+	cla_16bit
+
+} {} {}} I:/ece552/reduction.v {1 {vlog -work work -vopt -stats=none I:/ece552/reduction.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module reduction
+
+Top level modules:
+	reduction
+
+} {} {}} I:/ece552/ALU_tb.v {1 {vlog -work work -vopt -stats=none I:/ece552/ALU_tb.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module ALU_tb
+
+Top level modules:
+	ALU_tb
+
+} {} {}} I:/ece552/adder_1bit.v {1 {vlog -work work -vopt -stats=none I:/ece552/adder_1bit.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module adder_1bit
+
+Top level modules:
+	adder_1bit
+
+} {} {}} I:/ece552/cla_4bit.v {1 {vlog -work work -vopt -stats=none I:/ece552/cla_4bit.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module cla_4bit
+-- Compiling module cla_logic
+
+Top level modules:
+	cla_4bit
+
+} {} {}} I:/ece552/Shifter_tb.v {1 {vlog -work work -vopt -stats=none I:/ece552/Shifter_tb.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module Shifter_tb
+
+Top level modules:
+	Shifter_tb
+
+} {} {}} I:/ece552/Shifter.v {1 {vlog -work work -vopt -stats=none I:/ece552/Shifter.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module Shifter
+
+Top level modules:
+	Shifter
+
+} {} {}} I:/ece552/PSA_16bit_tb.v {1 {vlog -work work -vopt -stats=none I:/ece552/PSA_16bit_tb.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module PSA_16bit_tb
+
+Top level modules:
+	PSA_16bit_tb
+
+} {} {}} I:/ece552/cla_1bit.v {1 {vlog -work work -vopt -stats=none I:/ece552/cla_1bit.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module cla_1bit
+
+Top level modules:
+	cla_1bit
+
+} {} {}} I:/ece552/PSA_16bit.v {1 {vlog -work work -vopt -stats=none I:/ece552/PSA_16bit.v
+Model Technology ModelSim SE vlog 10.3c Compiler 2014.07 Jul 19 2014
+-- Compiling module PSA_16bit
+
+Top level modules:
+	PSA_16bit
+
+} {} {}}

@@ -1,0 +1,13 @@
+module adder_1bit(A, B, Cin, Sum, Cout);
+
+//input A, B, Cin
+input A, B, Cin;
+
+//output S, Cout
+output Sum, Cout;
+
+//assignment
+assign Sum = A ^ B ^ Cin;
+assign Cout = (A & B) | (B & Cin) | (A & Cin);
+
+endmodule

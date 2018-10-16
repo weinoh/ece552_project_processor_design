@@ -1,0 +1,166 @@
+module PC_control(C, I, F, PC_in, PC_out, hlt, rs, branch);
+	
+	input [2:0] C;
+	input [8:0] I;
+	input[2:0] F;
+	// Source register for BR
+	input [15:0] rs; 
+	input [15:0] PC_in;
+	output [15:0] PC_out;
+	// active low reset, halt, and B/BR flag
+	input hlt;
+	input [1:0] branch;
+
+	
+
+	wire[15:0] ADD_2, ADD_JUMP, SIGN_EXTENDED;
+	
+	wire Z, V, N, GT, GTE, OVFL, OVFL2;
+
+	wire [15:0] CondOut;
+	
+	
+	
+	assign Z = F[2];
+	assign V = F[1];
+	assign N = F[0];
+	
+	assign GT = !(Z | N);
+	assign GTE = Z | GT;
+	
+	assign cond = (C == 3'b000) ? !Z :
+				  (C == 3'b001) ? Z  :
+				  (C == 3'b010) ? GT :
+				  (C == 3'b011) ? N  :
+				  (C == 3'b100) ? Z | (GT) :
+				  (C == 3'b101) ? !GT :
+				  (C == 3'b110) ? V :
+				  (C == 3'b111) ? 1 : 0;
+	
+	assign Pout = (branch[1]) ? cond : 0;
+				  
+	
+	// pc + 2
+	
+	//PSA_16bit adder(.Sum(ADD_2), .Error(OVFL), .A(PC_in), .B(16'b10));
+	
+	cla16 adder(.C0(1'b0), .Carry(1'b1), .Sat_4bit(1'b0), .Sat_16bit(1'b0), .A(PC_in), .B(16'b10), .Sum(ADD_2), .C15(), .C16());
+	//Sign extended IMM
+	assign SIGN_EXTENDED = {{6{I[8]}}, I[8:0], 1'b0}; 
+	
+	// PC + 2 + imm
+	//PSA_16bit adderIm(.Sum(ADD_JUMP), .Error(OVFL2), .A(ADD_2), .B(SIGN_EXTENDED));
+	cla16 adderIm (.C0(1'b0), .Carry(1'b1), .Sat_4bit(1'b0), .Sat_16bit(1'b0), .A(ADD_2), .B(SIGN_EXTENDED), .Sum(ADD_JUMP), .C15(), .C16());
+	
+	// if branch is 0 it is B else it is BR, else simply add_2 to the pc
+	assign CondOut = Pout ? ((branch[0]) ? rs : ADD_JUMP): ADD_2;
+	
+	
+	// If reset is 0 PC_out = 0, if hlt is 1 PC_out = PC, else CondOut;
+	
+	assign PC_out = hlt ? PC_in: CondOut;
+	
+	endmodule
+
+	
+module cla16(C0, Carry, Sat_4bit, Sat_16bit, A, B, Sum, C15, C16);
+
+input C0, Carry, Sat_4bit, Sat_16bit;
+input[15:0]A, B;
+output [15:0]Sum;
+output C15,C16;
+
+wire C_15, CS_4, CS_8, CS_12;
+wire [15: 0] Sum_out;
+
+lookahead_16bit lh16(.C0(C0), .G_g0(G_g0), .P_g0(P_g0), .G_g1(G_g1), .P_g1(P_g1),.G_g2(G_g2), .P_g2(P_g2),.G_g3(G_g3),.P_g3(P_g3),.C4(C4),.C8(C8
+),.C12(C12),.C16(C16));
+
+// Carry control logic
+
+assign CS_4 = Carry?C4:0;
+assign CS_8 = Carry?C8:0;
+assign CS_12 = Carry?C12:0;
+cla4 s0(.A(A[3:0]), .B(B[3:0]), .C0(C0), .Sat_4bit(Sat_4bit),.Sum(Sum_out[3:0]), .G_g(G_g0), .P_g(P_g0), .C_3());
+cla4 s1(.A(A[7:4]), .B(B[7:4]), .C0(CS_4),.Sat_4bit(Sat_4bit), .Sum(Sum_out[7:4]), .G_g(G_g1), .P_g(P_g1), .C_3());
+cla4 s2(.A(A[11:8]), .B(B[11:8]), .C0(CS_8),.Sat_4bit(Sat_4bit),.Sum(Sum_out[11:8]), .G_g(G_g2), .P_g(P_g2), .C_3());
+cla4 s3(.A(A[15:12]), .B(B[15:12]), .C0(CS_12), .Sat_4bit(Sat_4bit), .Sum(Sum_out[15:12]), .G_g(G_g3), .P_g(P_g3), .C_3(C_15));
+
+
+assign Sum[15:0] = Sat_16bit?((Sum_out[15]&(~A[15])&(~B[15]))? 16'h0FFF:(~Sum_out[15]&(A[15])&(B[15]))?16'hFFFF:Sum_out[15:0]): Sum_out[15:0];
+
+assign C15=C_15;
+endmodule 
+
+
+
+module cla4 (A,B,C0, Sat_4bit, Sum,G_g,P_g, C_3);
+input [3:0]A, B;
+
+input C0, Sat_4bit;
+
+output [3:0]Sum;
+
+output G_g, P_g, C_3;
+
+wire G0, P0, G1, P1, G2, P2, G3, P3, C1, C2, C3;
+wire[3:0] Sum_raw;
+
+lookahead_4bit lh4(.C0(C0), .G0(G0), .P0(P0), .G1(G1), .P1(P1), .G2(G2), 
+	.P2(P2), .G3(G3), .P3(P3), .C1(C1), .C2(C2), .C3(C3), .G_g(G_g), .P_g(P_g));
+pfa ins0(.A(A[0]), .B(B[0]), .Cin(C0), .Sum(Sum_raw[0]), .P(P0), .G(G0));
+pfa ins1(.A(A[1]), .B(B[1]), .Cin(C1), .Sum(Sum_raw[1]), .P(P1), .G(G1));
+pfa ins2(.A(A[2]), .B(B[2]), .Cin(C2), .Sum(Sum_raw[2]), .P(P2), .G(G2));
+pfa ins3(.A(A[3]), .B(B[3]), .Cin(C3), .Sum(Sum_raw[3]), .P(P3), .G(G3));
+
+// Saturation Logic
+assign Sum[3:0] =  Sat_4bit?((Sum_raw[3]&(~A[3])&(~B[3]))? 4'b0111:(~Sum_raw[3]&(A[3])&(B[3]))?4'b1000:Sum_raw[3:0]): Sum_raw[3:0];
+
+assign C_3=C3;
+
+
+endmodule
+
+// Carry lookahead for 16bit, top module for adder 16bits
+module lookahead_16bit(C0, G_g0, P_g0, G_g1, P_g1,G_g2, P_g2,G_g3,P_g3,C4,C8,C12,C16);
+
+input C0, G_g0, P_g0, G_g1, P_g1, G_g2, P_g2, G_g3, P_g3;
+
+output C4, C8, C12, C16; 
+
+lookahead_4bit lh4(.C0(C0),.G0(G_g0),.P0(P_g0),.G1(G_g1),.P1(P_g1),.G2(G_g2),.P2(P_g2),.G3(G_g3),.P3(P_g3),.C1(C4),.C2(C8),.C3(C12),.G_g(),.P_g());
+
+assign C16 = G_g3 | (P_g3 & G_g2) |(P_g3 & P_g2 & G_g1) | (P_g3 & P_g2 & P_g1 & G_g0) | (P_g3 & P_g2 & P_g1 & P_g0 & C0);
+
+endmodule 
+
+// Carry lookahead logic for 4 bits
+module lookahead_4bit(C0,G0,P0,G1,P1,G2,P2,G3,P3,C1,C2,C3,G_g,P_g);
+
+input C0, G0, P0, G1, P1, G2, P2, G3, P3;
+output C1, C2, C3, G_g, P_g;
+
+assign C1=G0 | (P0 & C0);
+
+assign C2=G1 | (P1 & G0) | (P1 & P0 & C0);
+
+assign C3=G2 | (P2 & G1) | (P2 & P1 & G0) | (P2 & P1 & P0 & C0);
+
+assign G_g=G3 | (P3 & G2) |(P3 & P2 & G1) | (P3 & P2 & P1 & G0);
+
+assign P_g= P3 & P2 & P1 & P0 & C0;
+
+
+endmodule 
+
+// 1-bit adder with p, G output
+module pfa(A, B, Cin, Sum, P, G);
+
+input A, B, Cin;
+output Sum, P, G;
+
+assign G=A & B;
+assign P=A ^ B;
+assign Sum=A ^ B ^ Cin;
+
+endmodule 
